@@ -39,13 +39,13 @@ public class CSVReader {
     /**
      *
      * @param lokasiDataTraining lokasi file training
-     * @param jumlahIndeks jumlah sample data training pada file CSV
-     * @param INPUT_NEURON jumlah input neuron (fitur yang dimiliki oleh dataTraining)
+     * @param jumlahBaris jumlah sample data training pada file CSV
+     * @param jumlahKolom jumlah input neuron (fitur yang dimiliki oleh dataTraining)
      * @return array2d dari data training
      */
-    public double[][] bacaDataTraining(String lokasiDataTraining, int jumlahIndeks, int INPUT_NEURON) {
+    public double[][] bacaDataTraining(String lokasiDataTraining, int jumlahBaris, int jumlahKolom) {
         //String csvFile = "E:\\MACHINELEARNING\\Iris dataset training.csv";
-        double[][] dataTraining = new double[jumlahIndeks][INPUT_NEURON];
+        double[][] dataTraining = new double[jumlahBaris][jumlahKolom];
         BufferedReader br = null;
         String line = "";
         String csvSplitBy = ",";
@@ -58,11 +58,9 @@ public class CSVReader {
 
             while ((line = br.readLine()) != null){
                 String[] data = line.split(csvSplitBy);
-                
-                dataTraining[index][0] = Double.valueOf(data[0]);
-                dataTraining[index][1] = Double.valueOf(data[1]);
-                dataTraining[index][2] = Double.valueOf(data[2]);
-                dataTraining[index][3] = Double.valueOf(data[3]);
+                for (int i = 0; i < jumlahKolom; i++) {
+                    dataTraining[index][i] = Double.valueOf(data[i]);
+                }
                 
                 index++;
             }
@@ -89,7 +87,7 @@ public class CSVReader {
      * @param OUTPUT_NEURON jumlah output neuron
      * @return array target pelatihan untuk tiap-tiap sample data training
      */
-    public double[][] bacaDataTarget(String lokasiDataTraining, int jumlahIndeks, int OUTPUT_NEURON){
+    public double[][] bacaDataTarget(String lokasiDataTraining, int jumlahIndeks, int OUTPUT_NEURON, int banyakKolom){
         double[][] dataTarget = new double[jumlahIndeks][OUTPUT_NEURON];
         BufferedReader br = null;
         String line = "";
@@ -97,65 +95,64 @@ public class CSVReader {
         int hitung = 0;
         int MAX_EPOCH = 10000;
         
-        try {       
+        try {
             br = new BufferedReader(new FileReader(lokasiDataTraining));
             int index = 0;
 
             while ((line = br.readLine()) != null){
                 String[] data = line.split(csvSplitBy);
                 
-                if(data[84].equalsIgnoreCase("atas")){
+                if(data[banyakKolom].equalsIgnoreCase("atas")){
                     for (int i = 0; i < 10; i++) {
-                        dataTarget[index][i] = 0.0833;                        
+                        dataTarget[index][i] = 0.0833;
                     }
-                    dataTarget[index][0] = 0.25;                    
-                }else if(data[84].equalsIgnoreCase("bawah")){
+                    dataTarget[index][0] = 0.25;
+                }else if(data[banyakKolom].equalsIgnoreCase("bawah")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][1] = 0.25;
-                }else if(data[84].equalsIgnoreCase("kanan")){
+                }else if(data[banyakKolom].equalsIgnoreCase("hapus")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][2] = 0.25;
-                }else if(data[84].equalsIgnoreCase("kiri")){
+                }else if(data[banyakKolom].equalsIgnoreCase("kanan")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][3] = 0.25;
-                }else if(data[84].equalsIgnoreCase("naik")){
+                }else if(data[banyakKolom].equalsIgnoreCase("kiri")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][4] = 0.25;
-                }else if(data[84].equalsIgnoreCase("turun")){
+                }else if(data[banyakKolom].equalsIgnoreCase("naik")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][5] = 0.25;
-                }else if(data[84].equalsIgnoreCase("hapus")){
+                }else if(data[banyakKolom].equalsIgnoreCase("potong")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][6] = 0.25;
-                }else if(data[84].equalsIgnoreCase("salin")){
+                }else if(data[banyakKolom].equalsIgnoreCase("salin")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][7] = 0.25;
-                }else if(data[84].equalsIgnoreCase("potong")){
+                }else if(data[banyakKolom].equalsIgnoreCase("tempel")){
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][8] = 0.25;
-                }else{ //tempel
+                }else{ //turun
                     for (int i = 0; i < 10; i++) {
                         dataTarget[index][i] = 0.0833;                        
                     }
                     dataTarget[index][9] = 0.25;
                 }
-                                
                 index++;
             }
         } catch (FileNotFoundException e) {
