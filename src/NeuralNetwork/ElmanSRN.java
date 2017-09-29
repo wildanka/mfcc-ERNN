@@ -1,31 +1,27 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package NeuralNetwork;
+
 import java.text.DecimalFormat;
 
 /**
- *
- * @author DAN
+ * Created by DAN on 9/17/2017.
  */
 public class ElmanSRN {
     private int TIMESTEP;
     private int INPUT_NEURON = 12;
-    private int HIDDEN_NEURON = 15;
+    private int HIDDEN_NEURON;
     private int OUTPUT_NEURON = 10;
     private double LEARNING_RATE;
     private int JUMLAH_EPOCH;
     private int JUMLAH_SAMPLE_TRAINING;
 
     //private double[][] dataTraining = {{0,0,1}, {1,0,1}, {0,1,0}, {0,1,0}};
-    private double[][] dataTraining = new double[TIMESTEP][INPUT_NEURON];
+    private double[][] dataTraining;
     private double[] dataTarget = new double[OUTPUT_NEURON];
 
     private double[][][] sampleDataTraining;
     private double[][] sampleDataTarget;
 
+    /*
     private double[][][] sampleTes = {
             {{1,0,0,1,1,0,1,1,1,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,1}, {1,0,0,1,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,0}, {1,0,0,1,0,1,0,0,0,0,0,0}},
             {{5,0,0,0,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,0,0,0,1,0,1}, {1,0,0,0,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,0}, {0,0,0,1,0,1,0,0,0,0,0,0}},
@@ -34,39 +30,84 @@ public class ElmanSRN {
             {{6,0,0,1,1,0,1,1,1,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,1}, {1,0,0,1,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,0}, {1,0,1,1,0,1,0,0,0,0,0,0}},
             {{9,0,0,1,1,0,1,1,1,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,1}, {1,0,0,1,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,1,0,0,1,0,0}, {1,1,1,1,0,1,0,0,0,0,0,0}}
     };
+    */
 
-    private double[][][] bobotTIH = new double[TIMESTEP][INPUT_NEURON][HIDDEN_NEURON];
-    private double[][][] bobotTCH = new double[TIMESTEP][HIDDEN_NEURON][HIDDEN_NEURON];
-    private double[][] bobotHO = new double[HIDDEN_NEURON][OUTPUT_NEURON];
-    private double[][] bobotBiasTIH = new double[TIMESTEP][HIDDEN_NEURON];
+    private double[][][] sampleTes;
+    private String[] sampleTesHarapan = {
+        "kanan", 
+        "kanan", 
+        "kanan", 
+        "kiri",
+        "kiri",
+        "kiri",
+    };
+
+    private double[][][] bobotTIH;
+    private double[][][] bobotTCH;
+    private double[][] bobotHO;
+    private double[][] bobotBiasTIH;
     private double[] bobotBiasHO = new double[OUTPUT_NEURON];
 
-    private double[][] aktifHiddenT = new double[TIMESTEP][HIDDEN_NEURON];
-    private double[][] contextTC = new double[TIMESTEP][HIDDEN_NEURON]; //TC = Timestep, Context
+    private double[][] aktifHiddenT;
+    private double[][] contextTC; //TC = Timestep, Context
     private double[] netOutput = new double[OUTPUT_NEURON];
     private double[] aktifOutput = new double[OUTPUT_NEURON];
     private double[] oGrad = new double[OUTPUT_NEURON];
 
-    private double[][] thGrad = new double[TIMESTEP][HIDDEN_NEURON];
+    private double[][] thGrad;
 
-    public ElmanSRN(int TIMESTEP, double LEARNING_RATE, int JUMLAH_EPOCH, int JUMLAH_SAMPLE_TRAINING, double[][][] sampleDataTraining, double[][] sampleDataTarget) {
+    public double[][][] getBobotTIH() {
+        return bobotTIH;
+    }
+
+    public double[][][] getBobotTCH() {
+        return bobotTCH;
+    }
+
+    public double[][] getBobotHO() {
+        return bobotHO;
+    }
+
+    public double[][] getBobotBiasTIH() {
+        return bobotBiasTIH;
+    }
+
+    public double[] getBobotBiasHO() {
+        return bobotBiasHO;
+    }
+
+    
+    //CONSTRUCTOR
+    public ElmanSRN(int HIDDEN_NEURON, int TIMESTEP, double LEARNING_RATE, int JUMLAH_EPOCH, int JUMLAH_SAMPLE_TRAINING, 
+        double[][][] sampleDataTraining, double[][] sampleDataTarget, double[][][] sampleTes){
+        this.sampleDataTraining = sampleDataTraining;
+        this.sampleDataTarget = sampleDataTarget;
+        this.sampleTes = sampleTes;
+        
         this.TIMESTEP = TIMESTEP;
         this.LEARNING_RATE = LEARNING_RATE;
         this.JUMLAH_EPOCH = JUMLAH_EPOCH;
         this.JUMLAH_SAMPLE_TRAINING = JUMLAH_SAMPLE_TRAINING;
-        this.sampleDataTraining = sampleDataTraining;
-        this.sampleDataTarget = sampleDataTarget;
+        /*
+        karena @params TIMESTEP digunakan untuk menentukan ukuran pada beberapa array (bobotTIH,bobotTCH) 
+        maka array tersebut harus dideklarasikan langsung dari CONSTRUCTOR
+        */
+        this.bobotTIH = new double[TIMESTEP][INPUT_NEURON][HIDDEN_NEURON];
+        this.bobotTCH = new double[TIMESTEP][HIDDEN_NEURON][HIDDEN_NEURON];
+        this.bobotBiasTIH = new double[TIMESTEP][HIDDEN_NEURON];
+        this.dataTraining = new double[TIMESTEP][INPUT_NEURON];
+        this.thGrad = new double[TIMESTEP][HIDDEN_NEURON];
+        this.contextTC = new double[TIMESTEP][HIDDEN_NEURON]; //TC = Timestep, Context
+        this.aktifHiddenT = new double[TIMESTEP][HIDDEN_NEURON];
         
+        this.HIDDEN_NEURON = HIDDEN_NEURON;
+        this.bobotHO = new double[HIDDEN_NEURON][OUTPUT_NEURON];
     }
 
-
-
-
-    
-    
-    private void generateBobot(){
+    private void generateBobot() {
         DecimalFormat formatTiga = new DecimalFormat("#.###");
-
+        System.out.println(bobotTIH.length+" = "+bobotTIH[0].length+" = "+bobotTIH[0][0].length);
+        
         for (int t = 0; t < TIMESTEP; t++) {
             double binput = 0.09;
             double bcontext = 0.04;
@@ -76,20 +117,24 @@ public class ElmanSRN {
                 for (int h = 0; h < HIDDEN_NEURON; h++) {
                     binput = binput + 0.001;
                     bobotTIH[t][i][h] = binput;
-                    System.out.print(t+"=="+i+"=="+h);
+//                    System.out.println(t+"=="+i+"=="+h);
                 }
                 //System.out.println();
             }
 
             //bobot bias input-hidden (untuk setiap timestep)
             for (int h = 0; h < HIDDEN_NEURON; h++) {
-                bobotBiasTIH[t][h] = bbias + (h * 0.001);
+//                bobotBiasTIH[t][h] = bbias + (h * 0.001);
+//                System.out.println(t+"===="+h);
+
             }
 
             for (int c = 0; c < HIDDEN_NEURON; c++) {
                 for (int h = 0; h < HIDDEN_NEURON; h++) {
                     bcontext = bcontext + 0.001;
-                    bobotTCH[t][c][h] = bcontext;
+                    //bobotTCH[t][c][h] = bcontext;
+                    
+//                    System.out.println(t+"=="+c+"=="+h);
                 }
             }
         }
@@ -108,8 +153,6 @@ public class ElmanSRN {
         for (int o = 0; o < OUTPUT_NEURON; o++) {
             bobotBiasHO[o] = bbias + (o * 0.001);
         }
-
-
     }
 
     private void feedForward(){
@@ -207,7 +250,7 @@ public class ElmanSRN {
 
         System.out.println("============ HITUNG DELTA & UPDATE BOBOT ====================");
         for (int t = 0; t < TIMESTEP; t++) {
-            System.out.println("TIMESTEP "+t);
+//            System.out.println("TIMESTEP "+t);
             //INPUT -> HIDDEN
             for (int i = 0; i < INPUT_NEURON; i++) {
                 for (int h = 0; h < HIDDEN_NEURON; h++) {
@@ -301,9 +344,10 @@ public class ElmanSRN {
             //select the data input to train
             for (int j = 0; j < TIMESTEP; j++) {
                 for (int k = 0; k < INPUT_NEURON; k++) {
-//                    dataTraining[j][k] = sampleDataTraining[sample][j][k];
-//                    System.out.println(sample+" === "+j+" === "+k);
-                    System.out.println(sampleDataTraining[0][0][0]);
+                    dataTraining[j][k] = sampleDataTraining[sample][j][k];
+//                    System.out.println(sampleDataTraining[sample][j][k]);
+//                    System.out.println(sample+" "+j+" "+k);
+//System.out.println(TIMESTEP);
                 }
             }
 
@@ -322,9 +366,9 @@ public class ElmanSRN {
         getTrainingState();
 
         //test dengan data uji
-//        testDenganDataUji();
+        System.out.println("test dengan data uji");
+        testDenganDataUji();
     }
-
 
     public void getTrainingState(){
         double sum = 0.0;
@@ -343,6 +387,7 @@ public class ElmanSRN {
             }
 
             //lakukan feedforward (pengujian)
+            System.out.println("Data Training ke-"+i);
             feedForward();
 
             //hitung akurasi yang dihasilkan terhadap data latih
@@ -370,14 +415,14 @@ public class ElmanSRN {
     }
 
     public void testDenganDataUji(){
-        for (int i = 0; i < JUMLAH_SAMPLE_TRAINING; i++) {
+        for (int i = 0; i < sampleTes.length; i++) {
             //masukkan sample input pada data training pada setiap timestep ke tempatnya
             for (int j = 0; j < TIMESTEP; j++) {
                 for (int k = 0; k < INPUT_NEURON; k++) {
                     dataTraining[j][k] = sampleTes[i][j][k];
                 }
             }
-
+            System.out.println("Data uji ke-"+i);
             //lakukan feedforward (pengujian)
             feedForward();
 
@@ -388,8 +433,10 @@ public class ElmanSRN {
                 }
             }
 
-            System.out.print("Output: " + maximum(aktifOutput) + "\n");
+            System.out.print("\nOutput: " + maximum(aktifOutput) + "\n");
+            
         }
     }
 
+    
 }
