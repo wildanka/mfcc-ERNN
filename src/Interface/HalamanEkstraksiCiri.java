@@ -44,6 +44,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         btnHome = new javax.swing.JButton();
+        btnDetilMFCC = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -62,6 +63,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         textAreaMFCCCoefficient = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -76,6 +78,13 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
             }
         });
 
+        btnDetilMFCC.setText("Detil MFCC");
+        btnDetilMFCC.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDetilMFCCActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -85,7 +94,9 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                 .addComponent(btnHome)
                 .addGap(206, 206, 206)
                 .addComponent(jLabel1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnDetilMFCC, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -93,7 +104,8 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnHome, javax.swing.GroupLayout.DEFAULT_SIZE, 83, Short.MAX_VALUE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(btnDetilMFCC, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -145,6 +157,8 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
 
         textAreaMFCCCoefficient.setText("12");
 
+        jButton1.setText("Browse File");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -170,8 +184,11 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addComponent(txtAreaCF, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(txtAreaFolderLocation, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(textAreaMFCCCoefficient, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                            .addComponent(textAreaMFCCCoefficient, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                                .addComponent(txtAreaFolderLocation, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButton1))))
                                     .addGroup(jPanel2Layout.createSequentialGroup()
                                         .addComponent(jLabel4)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -195,10 +212,11 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(24, 24, 24)
+                .addGap(23, 23, 23)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(txtAreaFolderLocation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtAreaFolderLocation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
@@ -223,7 +241,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(txtAreaCSVTarget, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addComponent(btnExtract)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -302,6 +320,34 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                     fileWriter.append(String.valueOf(fitur[j]));
                     fileWriter.append(COMMA_DELIMITER);
                 }
+                String upTo4Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 4));
+                String upTo5Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 5));
+                String upTo6Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 6));
+                String kelasTarget;
+                if (upTo4Characters.equalsIgnoreCase("atas")) {
+                    kelasTarget = "atas";
+                }else if (upTo5Characters.equalsIgnoreCase("bawah")) {
+                    kelasTarget = "bawah";
+                }else if (upTo5Characters.equalsIgnoreCase("kanan")) {
+                    kelasTarget = "kanan";
+                }else if (upTo4Characters.equalsIgnoreCase("kiri")) {
+                    kelasTarget = "kiri";
+                }else if (upTo4Characters.equalsIgnoreCase("naik")) {
+                    kelasTarget = "naik";
+                }else if (upTo5Characters.equalsIgnoreCase("turun")) {
+                    kelasTarget = "turun";
+                }else if (upTo5Characters.equalsIgnoreCase("salin")) {
+                    kelasTarget = "salin";
+                }else if (upTo6Characters.equalsIgnoreCase("tempel")) {
+                    kelasTarget = "tempel";
+                }else if (upTo6Characters.equalsIgnoreCase("potong")) {
+                    kelasTarget = "potong";
+                }else{
+                    kelasTarget = "hapus";
+                }
+                
+                jTextArea1.append("Fitur MFCC dari file "+file[i].getName()+" telah didapatkan, termasuk kedalam kategori "+kelasTarget+" ==> "+i+"\n");
+                fileWriter.append(kelasTarget);
                 fileWriter.append(NEW_LINE_SEPARATOR);
                 fileWriter.flush();
                 if (i == listOfFiles.length-1) {
@@ -324,6 +370,12 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jLabel5.setText(formatDua.format(SP));
         jLabel6.setText(formatDua.format(EP));
     }//GEN-LAST:event_jSlider1StateChanged
+
+    private void btnDetilMFCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDetilMFCCActionPerformed
+        // TODO add your handling code here:
+        DetilMFCC d = new DetilMFCC();
+        d.setVisible(true);
+    }//GEN-LAST:event_btnDetilMFCCActionPerformed
 
     private double[][] hitungMFCC(String lokasi, int CF, double SP, double EP, int koefisienMFCC){       
         DecimalFormat formatEmpat = new DecimalFormat("#0.0000"); //format angka
@@ -514,8 +566,10 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDetilMFCC;
     private javax.swing.JButton btnExtract;
     private javax.swing.JButton btnHome;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
