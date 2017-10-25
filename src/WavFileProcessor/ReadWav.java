@@ -8,7 +8,6 @@ package WavFileProcessor;
 import WavFileProcessor.WavFile;
 import java.io.File;
 import java.util.ArrayList;
-import sun.nio.cs.StreamDecoder;
 
 /**
  *
@@ -77,7 +76,6 @@ public class ReadWav {
         {
             System.err.println(e);
         }       
-        
     }
 
     public ArrayList<Double> silenceRemoval(ArrayList<Double> withSilence,int frekuensiSampling){
