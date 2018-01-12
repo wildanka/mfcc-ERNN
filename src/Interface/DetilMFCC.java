@@ -5,12 +5,23 @@
  */
 package Interface;
 
+import MFCCFeatureExtraction.FeatureExtraction;
+import MFCCFeatureExtraction.SpeechProcessing;
+import WavFileProcessor.ReadWav;
+import java.io.File;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import javax.swing.JFileChooser;
+
 /**
  *
  * @author DAN
  */
 public class DetilMFCC extends javax.swing.JFrame {
-
+    private int CF, MFCC_COEFF_NUMBER;
+    private double SF, EF;
+    private String lokasiFile;
+    
     /**
      * Creates new form DetilMFCC
      */
@@ -18,7 +29,203 @@ public class DetilMFCC extends javax.swing.JFrame {
         initComponents();
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
+    
+    /**
+     *
+     * @param MFCC_COEFF_NUMBER Jumlah Koefisien MFCC yang diinginkan 
+     * @param CF Considered Frame
+     * @param SF Start Point Frame
+     * @param EF End Point Frame
+     */
+    public DetilMFCC(int MFCC_COEFF_NUMBER, int CF, double SF, double EF){
+        initComponents();
+        this.MFCC_COEFF_NUMBER = MFCC_COEFF_NUMBER;
+        this.CF = CF;
+        this.SF = SF;
+        this.EF = EF;
+        
+        txtLokasiFileAudio.setText("Koefisien : "+String.valueOf(MFCC_COEFF_NUMBER)+
+                "CF : "+CF+
+                "SF : "+SF+
+                "EF : "+EF);
+        
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    }
 
+    private double[][] hitungMFCC(String lokasi, int CF, double SP, double EP, int koefisienMFCC){       
+        DecimalFormat formatEmpat = new DecimalFormat("#0.0000"); //format angka
+        DecimalFormat formatEnam = new DecimalFormat("#0.000000"); //format angka
+        DecimalFormat formatSembilan = new DecimalFormat("#0.000000000"); //format angka
+     
+        //lakukan pre-processing (sampling)
+        ReadWav pre = new ReadWav();
+        pre.bacaFile(lokasi); 
+        pre.getNilaiSample();        
+        
+        //output nilai sample
+        for (int i = 0; i < pre.getNilaiSample().size(); i++) {            
+            txtAreaSinyalAsli.append("("+i+") \t"+String.valueOf(formatSembilan.format(pre.getNilaiSample().get(i)))+" \t NILAI SAMPLE AWAL \n");
+        }                 
+
+        //silencer
+        ArrayList<Double> nonSilence = new ArrayList<>();
+        nonSilence = pre.silenceRemoval(pre.getNilaiSample(), 16000);        
+        // output hasil silence removal
+
+        for (int i = 0; i < nonSilence.size(); i++) {                        
+            txtAreaSilenceRemoval.append("("+i+") \t"+String.valueOf(formatSembilan.format(nonSilence.get(i)))+"\t HASIL SILENCE REMOVAL \n");
+        }
+        
+        //lakukan Speech processing
+        SpeechProcessing sp = new SpeechProcessing();
+        
+        //just for displaying dcRemoval Result Signal sake!!!!
+        ArrayList<Double> DCRemovalSignal = sp.dcRemoval(nonSilence);
+        
+        for (int i = 0; i < DCRemovalSignal.size(); i++) {
+            txtAreaDCRemoval.append("("+i+") \t"+String.valueOf(formatSembilan.format(DCRemovalSignal.get(i)))+"\t HASIL SILENCE REMOVAL -> DC REMOVAL\n");
+        }
+        
+        // DC REMOVAL - PRE EMPHASIS 
+        ArrayList<Double> preEmphasisSignal = sp.preEmphasis(DCRemovalSignal);
+         
+        for (int i = 0; i < preEmphasisSignal.size(); i++) {
+            txtAreaPreEmp.append("("+i+") \t"+String.valueOf(formatSembilan.format(preEmphasisSignal.get(i)))+"\t HASIL DC REMOVAL -> PRE EMPHASIS \n");
+        }
+
+        // FRAME BLOCKING
+        //tentukan jumlah frame blocking (frameRate)
+        // jika frame sebesar 25 ms = 16 * 25 = 400
+        int samplePoint = 16 * 25; 
+        int M = samplePoint/2;  //M
+        int frameRate = (nonSilence.size() - samplePoint) / M +1; //jumlah frame dalam satu detik
+        FeatureExtraction mfcc = new FeatureExtraction(nonSilence.size(),samplePoint,frameRate);        
+        mfcc.frameBlocking(preEmphasisSignal);   
+      
+        //output hasil frame blocking
+        int start;
+        
+        for (int i = 0; i < frameRate; i++) {
+            //buat(bagi) frame sebanyak framerate
+            start = (samplePoint/2)*i;            
+            txtAreaFrameBlocking.append(String.valueOf(i)+"\t");
+            for (int j = start; j < start+samplePoint; j++) {
+                if (preEmphasisSignal!=null) {
+                    mfcc.frame[i][j-start] = preEmphasisSignal.get(j);
+                } else {
+                    mfcc.frame[i][j-start] = 0.0;
+                }
+                txtAreaFrameBlocking.append(String.valueOf(formatEmpat.format(mfcc.frame[i][j-start]))+"\t");
+            }
+            txtAreaFrameBlocking.append("\n");
+        }
+        
+        //TIME ALIGNMENT
+//        int CF = 5;
+//        double SP = 0.06;
+//        double EP = 0.94;
+        SP *= frameRate;
+        EP *= frameRate;
+        System.out.println(SP);
+        System.out.println(EP);
+
+        //double step = (Math.round(EP) - Math.round(SP)) / (double) (CF-1);
+        double step = Math.floor((Math.round(EP) - Math.round(SP)) / (double) (CF-1));
+        System.out.println("EP - SP ("+(Math.round(EP)-Math.round(SP))+") , \n"
+                + "Nilai EP Asli = "+EP+" -> Nilai Pembulatan EP = "+Math.round(EP)+" \n"
+                + "Nilai SP Asli = "+SP+", -> Nilai Pembulatan SP = "+Math.round(SP)+" \n"
+                + "STEP = "+Math.round(step));
+        //ambil frame tertentu sebanyak CF
+        int[] consideredFrame = new int[CF];
+        for (int i = 0; i < CF; i++) {
+            if (i==0) {
+                //jika i == 0 maka Masukkan nilai SP seperti yang sudah ditentukan
+                //SP = (int) Math.round(SP) - 1;
+                SP = (int) Math.round(SP);
+            }else{
+                //selanjutnya geser nilai SP sesuai nilai step yang telah didapatkan
+                SP = (int) (Math.round(SP) + Math.round(step));
+            }
+            //masukkan nilai SP tersebut kedalam index consideredFrame yang akan digunakan
+            consideredFrame[i] = (int) SP;
+            System.out.print(consideredFrame[i]+", ");
+        }
+        
+        //for displaying sakeee
+        for (int i = 0; i < consideredFrame.length; i++) {
+            int indexCF = consideredFrame[i];
+            txtAreaTimeAlignment.append(Integer.toString(i)+"\t");
+            for (int j = 0; j < mfcc.frame[0].length; j++) {
+                txtAreaTimeAlignment.append(String.valueOf(mfcc.frame[indexCF][j])+"\t");
+            }
+            txtAreaTimeAlignment.append("\n");
+        }
+        
+        // WINDOWING
+        mfcc.windowing(FeatureExtraction.frame, frameRate, samplePoint);                
+
+        for (int i = 0; i < CF; i++) {
+            txtAreaWindowing.append(String.valueOf(i)+"\t");
+            for (int j = 0; j < samplePoint; j++) {
+                txtAreaWindowing.append(String.valueOf(formatEnam.format(mfcc.windowingSignal[consideredFrame[i]][j]))+"\t");;
+            }
+            txtAreaWindowing.append("\n");
+        }
+    
+        //lakukan Ekstraksi Ciri
+        //FFT               
+        mfcc.fastFourierTransform(mfcc.windowingSignal, CF, samplePoint);
+        mfcc.getMagnitudeSemua();
+
+        for (int i = 0; i < CF; i++) {
+            txtAreaFFT.append(String.valueOf(i)+"\t");
+            for (int j = 0; j < samplePoint; j++) {
+                txtAreaFFT.append(String.valueOf(formatEnam.format(mfcc.magnitudeSemua[i][j]))+"\t");
+               //System.out.println("FRAME KE"+i+"FFT ke"+j+" = "+mfcc.magnitudeSemua[i][j]);
+               //textareaFFT.append(i+"-"+j+"\t");
+            }
+            txtAreaFFT.append("\n");
+        }
+      
+        //mel-filterbank
+        //mfcc.filterbank(mfcc.magnitudeSemua, 22);
+        // framerate = jumlah frame yang ada
+        // samplePoint = jumlah point(sample dalam 1 frame)
+        mfcc.filterbank(mfcc.getMagnitudeSemua(),1000,CF,samplePoint); 
+
+        for (int i = 0; i < CF; i++) {
+            txtAreaMelFreq.append(String.valueOf(i)+"\t");
+            for (int j = 0; j < samplePoint; j++) {               
+                txtAreaMelFreq.append(String.valueOf(formatEmpat.format(mfcc.melFreqEnergy[i][j]))+"\t");
+            }
+            txtAreaMelFreq.append("\n");
+        }     
+
+        //DCT
+        mfcc.discreteCosineTransform(mfcc.melFreqEnergy, CF, samplePoint, koefisienMFCC);
+        System.out.println(mfcc.dctCepstrum.length+" "+mfcc.dctCepstrum[0].length);
+
+        for (int i = 0; i < mfcc.dctCepstrum.length; i++) {
+            txtAreaDCT.append(String.valueOf(i)+"\t");
+            for (int j = 0; j < mfcc.dctCepstrum[0].length; j++) {               
+               txtAreaDCT.append(String.valueOf(formatEmpat.format(mfcc.dctCepstrum[i][j]))+"\t");
+            }
+            txtAreaDCT.append("\n");
+        }
+        
+        //normalisasi
+        double[][] hasil = mfcc.normalisasiDanThresholding();
+        for (int i = 0; i < hasil.length; i++) {
+            System.out.print(String.valueOf(i)+"\t");            
+            for (int j = 0; j < hasil[0].length; j++) {
+                System.out.print(String.valueOf(hasil[i][j])+" \t");
+            }
+            System.out.println("");
+        }
+        
+        //return mfcc.normalisasiMFCC;
+        return hasil;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -83,8 +290,18 @@ public class DetilMFCC extends javax.swing.JFrame {
         jLabel1.setText("Pilih File Audio (16Khz)");
 
         btnAnalisis.setText("Analisis MFCC");
+        btnAnalisis.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAnalisisActionPerformed(evt);
+            }
+        });
 
         btnBrowseFile.setText("Browse File");
+        btnBrowseFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrowseFileActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -395,6 +612,22 @@ public class DetilMFCC extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnAnalisisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAnalisisActionPerformed
+        // TODO add your handling code here:
+        lokasiFile = txtLokasiFileAudio.getText();
+        
+        hitungMFCC(lokasiFile, CF, SF, EF, MFCC_COEFF_NUMBER);
+    }//GEN-LAST:event_btnAnalisisActionPerformed
+
+    private void btnBrowseFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseFileActionPerformed
+        JFileChooser jFileChooser1 = new JFileChooser();
+        jFileChooser1.showOpenDialog(null);
+        File file = jFileChooser1.getSelectedFile();
+        
+        String filename = file.getAbsolutePath();
+        txtLokasiFileAudio.setText(filename);
+    }//GEN-LAST:event_btnBrowseFileActionPerformed
 
     /**
      * @param args the command line arguments
