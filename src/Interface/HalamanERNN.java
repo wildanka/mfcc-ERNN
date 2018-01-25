@@ -6,8 +6,16 @@
 package Interface;
 
 import CSVIO.CSVReader;
+import CSVIO.CSVWriter;
 import NeuralNetwork.ElmanSRN;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.xml.soap.Detail;
 
 /**
@@ -15,7 +23,14 @@ import javax.xml.soap.Detail;
  * @author DAN
  */
 public class HalamanERNN extends javax.swing.JFrame {
-    int TIMESTEP, JUMLAH_FITUR_MFCC;
+    private int TIMESTEP, JUMLAH_FITUR_MFCC;
+    private int INPUT_NEURON, HIDDEN_NEURON;
+    private int EPOCH;
+    private double LEARNING_RATE;
+    
+    private int confussionMatrixTrain[][] = new int[10][10];
+    private int confussionMatrixTest[][] = new int[10][10];
+    ElmanSRN ernn;
     int OUTPUT_NEURON = 10;
     
     double[][][] bobotTIH;
@@ -31,6 +46,7 @@ public class HalamanERNN extends javax.swing.JFrame {
         initComponents();
     }
 
+    
     public double[][][] getBobotTIH() {
         return bobotTIH;
     }
@@ -39,6 +55,11 @@ public class HalamanERNN extends javax.swing.JFrame {
         return bobotBiasTIH;
     }
 
+    public void postData(){
+//        this.jLabel1.setText(String.valueOf(nilai));
+//        this.display.setText(username+"\n"+password);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -57,7 +78,7 @@ public class HalamanERNN extends javax.swing.JFrame {
         txtLokasiFileTraining = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         txtLokasiFileTesting = new javax.swing.JTextField();
-        btnMulai = new javax.swing.JButton();
+        btnLatih = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         txtTimestep = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
@@ -68,19 +89,29 @@ public class HalamanERNN extends javax.swing.JFrame {
         txtLearningRate = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         txtHiddenNeuron = new javax.swing.JTextField();
+        btnPengujian = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
-        jLabel10 = new javax.swing.JLabel();
+        labelAkurasiPersenTraining = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
+        labelAkurasiTraining = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
         jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
+        labelAkurasiPersenTesting = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
+        labelAkurasiTesting = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         txtAreaBobotHasilPelatihan3 = new javax.swing.JTextArea();
+        jButton1 = new javax.swing.JButton();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel16 = new javax.swing.JLabel();
+        txtSimpanBobot = new javax.swing.JTextField();
+        btnSimpanBobot = new javax.swing.JButton();
+        btnLoadBobot = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -95,7 +126,7 @@ public class HalamanERNN extends javax.swing.JFrame {
             }
         });
 
-        btnDetilERNN.setText("Lihat Detil ERNN");
+        btnDetilERNN.setText("ERNN Weight");
         btnDetilERNN.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDetilERNNActionPerformed(evt);
@@ -109,11 +140,11 @@ public class HalamanERNN extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(btnHome)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 154, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addGap(185, 185, 185)
                 .addComponent(btnDetilERNN)
-                .addGap(153, 153, 153))
+                .addGap(86, 86, 86))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -134,10 +165,10 @@ public class HalamanERNN extends javax.swing.JFrame {
 
         jLabel3.setText("Insert the location of csv file contain test dataset");
 
-        btnMulai.setText("Mulai");
-        btnMulai.addActionListener(new java.awt.event.ActionListener() {
+        btnLatih.setText("Train ERNN");
+        btnLatih.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnMulaiActionPerformed(evt);
+                btnLatihActionPerformed(evt);
             }
         });
 
@@ -166,6 +197,27 @@ public class HalamanERNN extends javax.swing.JFrame {
 
         txtHiddenNeuron.setText("15");
 
+        btnPengujian.setText("Test ERNN");
+        btnPengujian.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPengujianActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("...");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jButton3.setText("...");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -173,48 +225,55 @@ public class HalamanERNN extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnMulai, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(btnLatih, javax.swing.GroupLayout.PREFERRED_SIZE, 237, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(27, 27, 27)
+                        .addComponent(btnPengujian, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtLokasiFileTraining, javax.swing.GroupLayout.DEFAULT_SIZE, 193, Short.MAX_VALUE)
-                            .addComponent(txtLokasiFileTesting))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel7)
-                            .addComponent(jLabel8))
-                        .addGap(89, 89, 89)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtLearningRate)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(txtLokasiFileTraining, javax.swing.GroupLayout.DEFAULT_SIZE, 193, Short.MAX_VALUE)
+                                    .addComponent(txtLokasiFileTesting)))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel5)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel8))
+                                .addGap(89, 89, 89)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtLearningRate, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(txtEpoch, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(txtTimestep)
-                                        .addComponent(txtFiturInput, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE))
-                                    .addComponent(txtHiddenNeuron, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(0, 0, Short.MAX_VALUE)))))
-                .addGap(5, 5, 5))
+                                    .addComponent(txtFiturInput, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(txtHiddenNeuron, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(txtTimestep, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGap(0, 2, Short.MAX_VALUE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(4, 4, 4))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(25, 25, 25)
+                .addGap(15, 15, 15)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(txtLokasiFileTraining, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(txtLokasiFileTraining, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(txtLokasiFileTesting, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(24, 24, 24)
+                    .addComponent(txtLokasiFileTesting, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(txtTimestep, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -234,8 +293,10 @@ public class HalamanERNN extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel8)
                     .addComponent(txtHiddenNeuron, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
-                .addComponent(btnMulai)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnLatih)
+                    .addComponent(btnPengujian))
                 .addContainerGap())
         );
 
@@ -244,32 +305,32 @@ public class HalamanERNN extends javax.swing.JFrame {
 
         jPanel5.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 33)); // NOI18N
-        jLabel10.setText("0.00 %");
+        labelAkurasiPersenTraining.setFont(new java.awt.Font("Tahoma", 1, 33)); // NOI18N
+        labelAkurasiPersenTraining.setText("0.00 %");
 
-        jLabel9.setText("Akurasi terhadap data training");
+        jLabel9.setText("Percentage of recognized training data");
 
-        jLabel11.setText("Data Latih Berhasil =");
+        jLabel11.setText("Speech Recognized =");
 
-        jLabel12.setText("100/100");
+        labelAkurasiTraining.setText("100/100");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
+                .addGap(8, 8, 8)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel9)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGap(54, 54, 54)
-                        .addComponent(jLabel10))
+                        .addComponent(labelAkurasiPersenTraining))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGap(3, 3, 3)
                         .addComponent(jLabel11)
                         .addGap(15, 15, 15)
-                        .addComponent(jLabel12)))
-                .addContainerGap(88, Short.MAX_VALUE))
+                        .addComponent(labelAkurasiTraining)))
+                .addContainerGap(51, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -277,26 +338,29 @@ public class HalamanERNN extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel9)
                 .addGap(11, 11, 11)
-                .addComponent(jLabel10)
-                .addGap(26, 26, 26)
+                .addComponent(labelAkurasiPersenTraining)
+                .addGap(20, 20, 20)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel11)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGap(1, 1, 1)
-                        .addComponent(jLabel12)))
-                .addContainerGap(29, Short.MAX_VALUE))
+                        .addComponent(labelAkurasiTraining)))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
 
-        jPanel3.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 290, 150));
+        jPanel3.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 250, 130));
 
         jPanel6.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jLabel13.setText("Akurasi terhadap data testing");
+        jLabel13.setText("Percentage of recognized testing data");
 
-        jLabel14.setFont(new java.awt.Font("Tahoma", 1, 33)); // NOI18N
-        jLabel14.setText("0.00 %");
+        labelAkurasiPersenTesting.setFont(new java.awt.Font("Tahoma", 1, 33)); // NOI18N
+        labelAkurasiPersenTesting.setText("0.00 %");
 
-        jLabel15.setText("Data Testing Berhasil Dikenali =");
+        jLabel15.setText("Speech Recognized :");
+
+        labelAkurasiTesting.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelAkurasiTesting.setText("0/0");
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -308,26 +372,31 @@ public class HalamanERNN extends javax.swing.JFrame {
                         .addContainerGap()
                         .addComponent(jLabel13))
                     .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGap(74, 74, 74)
-                        .addComponent(jLabel14))
+                        .addGap(78, 78, 78)
+                        .addComponent(labelAkurasiPersenTesting))
                     .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addComponent(jLabel15)))
-                .addContainerGap(89, Short.MAX_VALUE))
+                        .addContainerGap()
+                        .addComponent(jLabel15))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addGap(67, 67, 67)
+                        .addComponent(labelAkurasiTesting, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(45, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel13)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel14)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(4, 4, 4)
+                .addComponent(labelAkurasiPersenTesting)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel15)
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(labelAkurasiTesting)
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
-        jPanel3.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 170, 290, 140));
+        jPanel3.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 150, 250, 130));
 
         jPanel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
@@ -340,46 +409,117 @@ public class HalamanERNN extends javax.swing.JFrame {
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 762, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addComponent(jScrollPane3)
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addGap(0, 12, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        jButton1.setText("Refresh");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jPanel7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel16.setText("Save weight location(folder)");
+
+        txtSimpanBobot.setText("C:\\Users\\DAN\\Documents\\BobotOutput\\");
+            txtSimpanBobot.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    txtSimpanBobotActionPerformed(evt);
+                }
+            });
+
+            btnSimpanBobot.setText("Save Trained Weight");
+            btnSimpanBobot.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    btnSimpanBobotActionPerformed(evt);
+                }
+            });
+
+            btnLoadBobot.setText("Load ERNN Weight");
+            btnLoadBobot.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    btnLoadBobotActionPerformed(evt);
+                }
+            });
+
+            javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+            jPanel7.setLayout(jPanel7Layout);
+            jPanel7Layout.setHorizontalGroup(
+                jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel7Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jLabel16)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(txtSimpanBobot)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(btnSimpanBobot, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(btnLoadBobot, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(44, 44, 44))
+            );
+            jPanel7Layout.setVerticalGroup(
+                jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel7Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel16)
+                        .addComponent(txtSimpanBobot, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnSimpanBobot)
+                        .addComponent(btnLoadBobot))
+                    .addContainerGap(15, Short.MAX_VALUE))
+            );
+
+            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+            getContentPane().setLayout(layout);
+            layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGap(0, 3, Short.MAX_VALUE)))
+                    .addContainerGap())
+            );
+            layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+                    .addGap(18, 18, 18)
+                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(jButton1)
+                    .addContainerGap())
+            );
 
-        pack();
-        setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+            pack();
+            setLocationRelativeTo(null);
+        }// </editor-fold>//GEN-END:initComponents
 
     private void btnHomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHomeActionPerformed
         // TODO add your handling code here:
@@ -388,154 +528,13 @@ public class HalamanERNN extends javax.swing.JFrame {
         hUtama.setVisible(true);
     }//GEN-LAST:event_btnHomeActionPerformed
 
-    private void btnMulaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMulaiActionPerformed
-        // TODO add your handling code here:
-        //untuk tiga dimensi maka
-        int barisIndex, barisIndexTes;
-        int INPUT_NEURON, HIDDEN_NEURON;
-        int EPOCH;
-        double LEARNING_RATE;
-        
-        String lokasiDataTraining = "";
-        String lokasiDataTesting = "";
-        CSVReader csr = new CSVReader();
-        
-        //input lokasi dataTraining dan dataTesting (dalam bentuk file CSV)
-        lokasiDataTraining = txtLokasiFileTraining.getText();
-        lokasiDataTesting = txtLokasiFileTesting.getText();
-        
-        /*
-        * Dapatkan parameter yang dibutuhkan oleh ERNN seperti : 
-        * TIMESTEP pada data
-        * jumlah INPUT NEURON pada Setiap TIMESTEP
-        */
-        TIMESTEP = Integer.valueOf(txtTimestep.getText());
-        INPUT_NEURON = Integer.valueOf(txtFiturInput.getText());
-        EPOCH = Integer.valueOf(txtEpoch.getText());
-        LEARNING_RATE = Double.valueOf(txtLearningRate.getText());
-        HIDDEN_NEURON = Integer.valueOf(txtHiddenNeuron.getText());
-        int banyakKolom = TIMESTEP * INPUT_NEURON;
-        
-        //lakukan penghitungan terhadap jumlah dataset
-        barisIndex = csr.hitungJumlahDataTraining(lokasiDataTraining);
-        barisIndexTes = csr.hitungJumlahDataTraining(lokasiDataTesting);
-        
-        //sediakan array untuk menampung hasil dari pembacaan file csv
-        /*
-        @dataTraining2Dimensi = array 2D untuk menampung hasil pembacaan, 
-        nantinya akan dirubah kedalam bentuk 3D [UrutanDataSample][TIMESTEP][INPUT_NEURON]
-        
-        @dataTarget = data target dari setiap sample input yang ada (data target dalam tiap baris)
-        */
-        double[][] dataTraining2Dimensi = new double[barisIndex][banyakKolom];
-        double[][] dataTarget = new double[barisIndex][OUTPUT_NEURON];
-        double[][] dataTes2Dimensi = new double[barisIndex][OUTPUT_NEURON];
-        
-        //baca dataset yang ada dalam file CSV
-        dataTraining2Dimensi = csr.bacaDataTraining(lokasiDataTraining, barisIndex, banyakKolom);
-        dataTes2Dimensi = csr.bacaDataTraining(lokasiDataTesting, barisIndex, banyakKolom);
-
-        //kemudian rubah data 2 Dimensi tersebut kedalam data 3 Dimensi (dataInput bukan target)
-        double[][][] dataTraining = new double[barisIndex][TIMESTEP][INPUT_NEURON];
-        double[][][] dataTes = new double[barisIndexTes][TIMESTEP][INPUT_NEURON];
-
-        int pointer;
-        for (int i = 0; i < barisIndex; i++) {
-            pointer = 0;
-            for (int j = 0; j < TIMESTEP; j++) {
-                for (int k = 0; k < INPUT_NEURON; k++) {
-                    dataTraining[i][j][k] = dataTraining2Dimensi[i][pointer];
-                    pointer++;
-                }
-            }            
-        }     
-        
-        for (int i = 0; i < barisIndexTes; i++) {
-            pointer = 0;
-            for (int j = 0; j < TIMESTEP; j++) {
-                for (int k = 0; k < INPUT_NEURON; k++) {
-                    dataTes[i][j][k] = dataTes2Dimensi[i][pointer];
-                    pointer++;
-                }
-            }
-        }
-        
-        //setelah data 3 Dimensi didapatkan, selanjutnya tinggal menentukan data target dari pelatihan
-        dataTarget = csr.bacaDataTarget(lokasiDataTraining, barisIndex, OUTPUT_NEURON, banyakKolom); //buat array output yang diharapkan untuk setiap sample data                       
-        
-//        ElmanSRN ernn = new ElmanSRN(5, 0.05, 10000, 6);
-        ElmanSRN ernn = new ElmanSRN(HIDDEN_NEURON, TIMESTEP, LEARNING_RATE, EPOCH, barisIndex, dataTraining, dataTarget, dataTes);
-        ernn.main();
-        System.out.println(barisIndexTes);
-        
-//        double[][][] bobotTIH;
-//        double[][][] bobotTCH;
-//        double[][] bobotBiasTIH;
-//        double[][] bobotHO;
-//        double[] bobotBiasHO;
-        
-        bobotTIH = ernn.getBobotTIH();
-        bobotTCH = ernn.getBobotTCH();
-        bobotBiasTIH = ernn.getBobotBiasTIH();
-        bobotHO = ernn.getBobotHO();
-        bobotBiasHO = ernn.getBobotBiasHO();
-        
-        DecimalFormat formatEmpat = new DecimalFormat("#.######");
-        
-        //INPUT -> HIDDEN
-    /*
-        txtAreaBobotHasilPelatihan.append("bobot INPUT-HIDDEN pada setiap TIMESTEP \n");
-        for (int t = 0; t < bobotTIH.length; t++) {
-            txtAreaBobotHasilPelatihan.append("TIMESTEP KE-"+t+"\n");
-            for (int i = 0; i < bobotTIH[0].length; i++) {
-                for (int h = 0; h < bobotTIH[0][0].length; h++) {
-                    txtAreaBobotHasilPelatihan.append(formatEmpat.format(bobotTIH[t][i][h])+"\t");
-                }
-                txtAreaBobotHasilPelatihan.append("\n");
-            }
-            txtAreaBobotHasilPelatihan.append("bobot BIAS INPUT-HIDDEN pada TIMESTEP "+t+"\n");
-            for (int h = 0; h < bobotBiasTIH[0].length; h++) {                
-                txtAreaBobotHasilPelatihan.append(formatEmpat.format(bobotBiasTIH[t][h])+"\t");
-            }
-            txtAreaBobotHasilPelatihan.append("\n\n");
-        }
-      */  
-        //HIDDEN -> HIDDEN (CONTEXT)
-        /*
-        DecimalFormat formatDuaPuluh = new DecimalFormat("#.####################");
-        txtAreaBobotHasilPelatihan2.append("bobot CONTEXT-HIDDEN pada setiap TIMESTEP \n");
-        for (int t = 0; t < bobotTCH.length; t++) {
-            txtAreaBobotHasilPelatihan2.append("TIMESTEP KE-"+t+"\n");
-            for (int c = 0; c < bobotTCH[0].length; c++) {
-                for (int h = 0; h < bobotTCH[0][0].length; h++) {
-                    txtAreaBobotHasilPelatihan2.append(formatDuaPuluh.format(bobotTCH[t][c][h])+"\t");
-                }
-                txtAreaBobotHasilPelatihan2.append("\n");
-            }
-            txtAreaBobotHasilPelatihan2.append("\n");
-        }
-        */
-        //HIDDEN -> OUTPUT
-//        txtAreaBobotHasilPelatihan3.append("bobot HIDDEN-OUTPUT \n");
-//        for (int h = 0; h < bobotHO.length; h++) {
-//            for (int o = 0; o < bobotHO[0].length; o++) {
-//                txtAreaBobotHasilPelatihan3.append(formatEmpat.format(bobotHO[h][o])+"\t");
-//            }
-//            txtAreaBobotHasilPelatihan3.append("\n");            
-//        }
-//        txtAreaBobotHasilPelatihan3.append("bobot BIAS HIDDEN-OUTPUT \n");
-//        for (int o = 0; o < bobotBiasHO.length; o++) {
-//            txtAreaBobotHasilPelatihan3.append(formatEmpat.format(bobotBiasHO[o])+"\t");
-//        }
-    }//GEN-LAST:event_btnMulaiActionPerformed
-
      public void tampilkanArray(double[][][] arrayTes){
         for (int i = 0; i < arrayTes.length; i++) {
             System.out.println(i);
             for (int j = 0; j < arrayTes[0].length; j++) {
                 for (int k = 0; k < arrayTes[0][0].length; k++) {
                     System.out.print(arrayTes[i][j][k]+"\t");
-                }                
+                }
                 System.out.println("");
             }
         }
@@ -552,10 +551,6 @@ public class HalamanERNN extends javax.swing.JFrame {
         System.out.println(arrayTes.length+","+arrayTes[0].length);
     }
     
-    private void txtFiturInputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFiturInputActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtFiturInputActionPerformed
-
     private void btnDetilERNNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDetilERNNActionPerformed
         // TODO add your handling code here:
         int HIDDEN_NEURON = Integer.valueOf(txtHiddenNeuron.getText());
@@ -563,6 +558,347 @@ public class HalamanERNN extends javax.swing.JFrame {
         DetilERNN detil = new DetilERNN(bobotTIH,bobotBiasTIH,bobotTCH,bobotHO,bobotBiasHO);                
         detil.setVisible(true);
     }//GEN-LAST:event_btnDetilERNNActionPerformed
+
+    private void btnSimpanBobotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanBobotActionPerformed
+        // TODO add your handling code here:
+        String folderSimpanBobot = txtSimpanBobot.getText();
+        if (Files.isDirectory(Paths.get(folderSimpanBobot))) {
+            if (bobotTIH == null) {
+                JOptionPane.showMessageDialog(null,"Bobot Hasil Pelatihan Tidak Ditemukan","ERROR",JOptionPane.INFORMATION_MESSAGE);
+            }else{
+                String lokasiTIH,lokasiBiasTIH,lokasiTCH, lokasiHO, lokasiBiasHO;        
+                lokasiTIH = txtSimpanBobot.getText()+"\\bobotTIH.csv";
+                lokasiBiasTIH = txtSimpanBobot.getText()+"\\bobotBiasTIH.csv";
+                lokasiTCH = txtSimpanBobot.getText()+"\\bobotTCH.csv";
+                lokasiHO = txtSimpanBobot.getText()+"\\bobotHO.csv";
+                lokasiBiasHO = txtSimpanBobot.getText()+"\\bobotBiasHO.csv";
+
+                CSVWriter csvw = new CSVWriter();
+
+                try {
+                    csvw.tulis3Dto2D(lokasiTIH, bobotTIH); //bobotTIH
+                    csvw.tulis2D(lokasiBiasTIH, bobotBiasTIH); //bobotBiasTIH
+                    csvw.tulis3Dto2D(lokasiTCH, bobotTCH); //bobotTCH
+                    csvw.tulis2D(lokasiHO, bobotHO); //bobotBiasTCH
+                    csvw.tulis1D(lokasiBiasHO, bobotBiasHO); //bobotBiasTCH
+                    JOptionPane.showMessageDialog(null, "Bobot Berhasil Disimpan","Berhasil",JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    Logger.getLogger(HalamanERNN.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                /*
+                csvw.tulis2D(lokasi, bobotHO); //bobotTCH
+                csvw.tulis2D(lokasi, bobotHO); //bobotHO
+                csvw.tulis2D(lokasi, bobotHO); //bobotBiasHO
+                */
+            }
+        }else{
+            File dir = new File(folderSimpanBobot);
+            dir.mkdir();
+            if (bobotTIH == null) {
+                JOptionPane.showMessageDialog(null,"Bobot Hasil Pelatihan Tidak Ditemukan","ERROR",JOptionPane.INFORMATION_MESSAGE);
+            }else{
+                String lokasiTIH,lokasiBiasTIH,lokasiTCH, lokasiHO, lokasiBiasHO;        
+                lokasiTIH = txtSimpanBobot.getText()+"\\bobotTIH.csv";
+                lokasiBiasTIH = txtSimpanBobot.getText()+"\\bobotBiasTIH.csv";
+                lokasiTCH = txtSimpanBobot.getText()+"\\bobotTCH.csv";
+                lokasiHO = txtSimpanBobot.getText()+"\\bobotHO.csv";
+                lokasiBiasHO = txtSimpanBobot.getText()+"\\bobotBiasHO.csv";
+
+                CSVWriter csvw = new CSVWriter();
+
+                try {
+                    csvw.tulis3Dto2D(lokasiTIH, bobotTIH); //bobotTIH
+                    csvw.tulis2D(lokasiBiasTIH, bobotBiasTIH); //bobotBiasTIH
+                    csvw.tulis3Dto2D(lokasiTCH, bobotTCH); //bobotTCH
+                    csvw.tulis2D(lokasiHO, bobotHO); //bobotBiasTCH
+                    csvw.tulis1D(lokasiBiasHO, bobotBiasHO); //bobotBiasTCH
+                    JOptionPane.showMessageDialog(null, "Bobot Berhasil Disimpan","Berhasil",JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    Logger.getLogger(HalamanERNN.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                /*
+                csvw.tulis2D(lokasi, bobotHO); //bobotTCH
+                csvw.tulis2D(lokasi, bobotHO); //bobotHO
+                csvw.tulis2D(lokasi, bobotHO); //bobotBiasHO
+                */
+            }
+        }
+    }//GEN-LAST:event_btnSimpanBobotActionPerformed
+
+    private void btnLoadBobotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadBobotActionPerformed
+        // TODO add your handling code here:
+        LoadBobot lb = new LoadBobot(this);
+        lb.setVisible(true);
+    }//GEN-LAST:event_btnLoadBobotActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        System.out.println("BOBOT TIH = ");
+	for (int i = 0; i < bobotTIH.length; i++) {
+            for (int j = 0; j < bobotTIH[0].length; j++) {
+                for (int k = 0; k < bobotTIH[0][0].length; k++) {
+                    System.out.print(bobotTIH[i][j][k]+"\t");
+                }
+                System.out.println("");
+            }
+            System.out.println("");
+        }
+        
+        System.out.println("BOBOT BIAS TIH = ");
+        for (int i = 0; i < bobotBiasTIH.length; i++) {
+            for (int j = 0; j < bobotBiasTIH[0].length; j++) {
+                System.out.print(bobotBiasTIH[i][j]+"\t");
+            }
+            System.out.println("");
+        }
+        
+        System.out.println("BOBOT TCH = ");
+	for (int i = 0; i < bobotTCH.length; i++) {
+            for (int j = 0; j < bobotTCH[0].length; j++) {
+                for (int k = 0; k < bobotTCH[0][0].length; k++) {
+                    System.out.print(bobotTCH[i][j][k]+"\t");
+                }
+                System.out.println("");
+            }
+            System.out.println("");
+        }
+        
+        System.out.println("BOBOT HO = ");
+        for (int i = 0; i < bobotHO.length; i++) {
+            for (int j = 0; j < bobotHO[0].length; j++) {
+                System.out.print(bobotHO[i][j]+"\t");
+            }
+            System.out.println("");
+        }
+        
+        System.out.println("BOBOT BIAS HO = ");
+        for (int i = 0; i < bobotBiasHO.length; i++) {
+            System.out.print(bobotBiasHO[i]+"\t");
+        }
+        
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void txtFiturInputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFiturInputActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtFiturInputActionPerformed
+
+    private void btnLatihActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLatihActionPerformed
+        // TODO add your handling code here:
+        //untuk tiga dimensi maka
+        int barisIndex, barisIndexTes;
+
+        String lokasiDataTraining = "";
+        String lokasiDataTesting = "";
+        CSVReader csr = new CSVReader();
+
+        //input lokasi dataTraining dan dataTesting (dalam bentuk file CSV)
+        lokasiDataTraining = txtLokasiFileTraining.getText();
+        lokasiDataTesting = txtLokasiFileTesting.getText();
+
+        /*
+        * Dapatkan parameter yang dibutuhkan oleh ERNN seperti :
+        * TIMESTEP pada data
+        * jumlah INPUT NEURON pada Setiap TIMESTEP
+        */
+        TIMESTEP = Integer.valueOf(txtTimestep.getText());
+        INPUT_NEURON = Integer.valueOf(txtFiturInput.getText());
+        EPOCH = Integer.valueOf(txtEpoch.getText());
+        LEARNING_RATE = Double.valueOf(txtLearningRate.getText());
+        HIDDEN_NEURON = Integer.valueOf(txtHiddenNeuron.getText());
+        int banyakKolom = TIMESTEP * INPUT_NEURON;
+
+        //lakukan penghitungan terhadap jumlah dataset
+        barisIndex = csr.hitungJumlahDataTraining(lokasiDataTraining);
+        barisIndexTes = csr.hitungJumlahDataTraining(lokasiDataTesting);
+
+        //sediakan array untuk menampung hasil dari pembacaan file csv
+        /*
+        @dataTraining2Dimensi = array 2D untuk menampung hasil pembacaan,
+        nantinya akan dirubah kedalam bentuk 3D [UrutanDataSample][TIMESTEP][INPUT_NEURON]
+
+        @dataTarget = data target dari setiap sample input yang ada (data target dalam tiap baris)
+        */
+        double[][] dataTraining2Dimensi = new double[barisIndex][banyakKolom];
+        double[][] dataTarget = new double[barisIndex][OUTPUT_NEURON];
+        double[][] dataTargetTes = new double[barisIndex][OUTPUT_NEURON];
+        double[][] dataTes2Dimensi = new double[barisIndexTes][OUTPUT_NEURON];
+
+        //baca dataset yang ada dalam file CSV
+        dataTraining2Dimensi = csr.bacaDataTraining(lokasiDataTraining, barisIndex, banyakKolom);
+        dataTes2Dimensi = csr.bacaDataTraining(lokasiDataTesting, barisIndexTes, banyakKolom);
+
+        //kemudian rubah data 2 Dimensi tersebut kedalam data 3 Dimensi (dataInput bukan target)
+        double[][][] dataTraining = new double[barisIndex][TIMESTEP][INPUT_NEURON];
+        double[][][] dataTes = new double[barisIndexTes][TIMESTEP][INPUT_NEURON];
+
+        int pointer;
+        //rubah data training 2D kedalam 3D
+        for (int i = 0; i < barisIndex; i++) {
+            pointer = 0;
+            for (int j = 0; j < TIMESTEP; j++) {
+                for (int k = 0; k < INPUT_NEURON; k++) {
+                    dataTraining[i][j][k] = dataTraining2Dimensi[i][pointer];
+                    pointer++;
+                }
+            }
+        }
+
+        //rubah data tes 2D kedalam 3D
+        for (int i = 0; i < barisIndexTes; i++) {
+            pointer = 0;
+            for (int j = 0; j < TIMESTEP; j++) {
+                for (int k = 0; k < INPUT_NEURON; k++) {
+                    dataTes[i][j][k] = dataTes2Dimensi[i][pointer];
+                    pointer++;
+                }
+            }
+        }
+
+        //setelah data 3 Dimensi didapatkan, selanjutnya tinggal menentukan data target dari pelatihan
+        dataTarget = csr.bacaDataTarget(lokasiDataTraining, barisIndex, OUTPUT_NEURON, banyakKolom); //buat array output yang diharapkan untuk setiap sample data
+        dataTargetTes = csr.bacaDataTarget(lokasiDataTesting, barisIndexTes, OUTPUT_NEURON, banyakKolom); //buat array output yang diharapkan untuk setiap sample data
+
+//        ElmanSRN ernn = new ElmanSRN(HIDDEN_NEURON, TIMESTEP, LEARNING_RATE, EPOCH, barisIndex, dataTraining, dataTarget, dataTes);
+        //bila bobot = null, maka lakukan ini
+        ernn = new ElmanSRN(HIDDEN_NEURON, TIMESTEP, LEARNING_RATE, EPOCH, 
+                barisIndex, 
+                dataTraining, 
+                dataTarget, 
+                barisIndexTes,
+                dataTes, 
+                dataTargetTes);
+        ernn.main();
+        //bila bobot != null, maka lakukan ini
+/*       
+        ElmanSRN ernn = new ElmanSRN(HIDDEN_NEURON, TIMESTEP, LEARNING_RATE, EPOCH, barisIndex, dataTraining, dataTarget);        
+        ernn.main();
+*/      
+
+        //jangan lupa tampilkan hasil pelatihan dan pengujian kepada user lewat interface
+        double akurasiTraining = ( (double) ernn.getDataPelatihanDikenali() / (double) ernn.getDataPelatihanJumlah())*100 ;
+        
+        //simpan bobot agar bisa dilihat detilnya
+        bobotTIH = ernn.getBobotTIH();
+        bobotTCH = ernn.getBobotTCH();
+        bobotBiasTIH = ernn.getBobotBiasTIH();
+        bobotHO = ernn.getBobotHO();
+        bobotBiasHO = ernn.getBobotBiasHO();
+        DecimalFormat formatDua = new DecimalFormat("#.##");
+        
+        labelAkurasiTraining.setText(String.valueOf(ernn.getDataPelatihanDikenali()) +" / "+String.valueOf(ernn.getDataPelatihanJumlah()));
+        labelAkurasiPersenTraining.setText(String.valueOf(formatDua.format(akurasiTraining))+"%");
+        
+        double akurasiTesting = ( (double) ernn.getDataTestingDikenali() / (double) ernn.getDataTestingJumlah() )*100;
+        
+        labelAkurasiTesting.setText(String.valueOf(ernn.getDataTestingDikenali()) +" / "+String.valueOf(ernn.getDataTestingJumlah()));
+        labelAkurasiPersenTesting.setText(String.valueOf(formatDua.format(akurasiTesting))+"%");
+        
+        confussionMatrixTrain = ernn.getConfussionMatrixTrain();
+        confussionMatrixTest = ernn.getConfussionMatrixTest();
+        
+        //tampilkan confussion matrix
+        for (int i = 0; i < 10; i++) {
+            System.out.print(i+" | ");
+            for (int j = 0; j < 10; j++) {
+                System.out.print(confussionMatrixTrain[i][j]+" \t");
+            }
+            System.out.println("");
+        }
+        
+        txtAreaBobotHasilPelatihan3.append("PELATIHAN \n");
+        txtAreaBobotHasilPelatihan3.append("No | 1\t 2\t 3\t 4 \t5 \t6 \t7 \t8 \t9 \t10 \n");
+        for (int i = 0; i < 10; i++) {
+            txtAreaBobotHasilPelatihan3.append(i+1+" | ");
+            for (int j = 0; j < 10; j++) {
+              txtAreaBobotHasilPelatihan3.append(confussionMatrixTrain[i][j]+" \t");
+            }
+            txtAreaBobotHasilPelatihan3.append("\n");
+        }
+        
+        txtAreaBobotHasilPelatihan3.append("\n");
+        txtAreaBobotHasilPelatihan3.append("PENGUJIAN\n");
+        txtAreaBobotHasilPelatihan3.append("No | 1\t 2\t 3\t 4 \t5 \t6 \t7 \t8 \t9 \t10 \n");
+        for (int i = 0; i < 10; i++) {
+            txtAreaBobotHasilPelatihan3.append(i+1+" | ");
+            for (int j = 0; j < 10; j++) {
+                txtAreaBobotHasilPelatihan3.append(confussionMatrixTest[i][j]+" \t");
+            }
+            txtAreaBobotHasilPelatihan3.append("\n");
+        }
+    }//GEN-LAST:event_btnLatihActionPerformed
+
+    private void btnPengujianActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPengujianActionPerformed
+        // TODO add your handling code here:        
+        String lokasiDataTesting = txtLokasiFileTesting.getText();
+        TIMESTEP = Integer.valueOf(txtTimestep.getText());
+        INPUT_NEURON = Integer.valueOf(txtFiturInput.getText());
+        
+        int barisIndexTes;
+        int banyakKolom = TIMESTEP * INPUT_NEURON;
+
+        CSVReader csr = new CSVReader();
+        barisIndexTes = csr.hitungJumlahDataTraining(lokasiDataTesting);
+        
+        double[][] dataTes2Dimensi = new double[barisIndexTes][OUTPUT_NEURON];
+        double[][] dataTargetTes = new double[barisIndexTes][OUTPUT_NEURON];
+        
+        dataTes2Dimensi = csr.bacaDataTraining(lokasiDataTesting, barisIndexTes, banyakKolom);
+        double[][][] dataTes = new double[barisIndexTes][TIMESTEP][INPUT_NEURON]; //data tes 3 dimensi yang akan digunakan
+        
+        //convert array data 2D menjadi 3D
+        int pointer;
+        for (int i = 0; i < barisIndexTes; i++) {
+            pointer = 0;
+            for (int j = 0; j < TIMESTEP; j++) {
+                for (int k = 0; k < INPUT_NEURON; k++) {
+                    dataTes[i][j][k] = dataTes2Dimensi[i][pointer];
+                    pointer++;
+                }
+            }
+        }
+        
+        //setelah data 3 Dimensi didapatkan, selanjutnya tinggal menentukan data target dari pelatihan
+        dataTargetTes = csr.bacaDataTarget(lokasiDataTesting, barisIndexTes, OUTPUT_NEURON, banyakKolom); //buat array output yang diharapkan untuk setiap sample data
+
+        // insert the weight of ERNN into ELmanSRN.java
+        ernn = new ElmanSRN(bobotTIH, bobotTCH, bobotBiasTIH, bobotHO, bobotBiasHO,
+                barisIndexTes,
+                dataTes,
+                dataTargetTes);
+  
+        // gunakan method ElmanSRN.testDenganDataUji
+        ernn.testDenganDataUji(dataTes,dataTargetTes);
+        //ernn.getTestingState(dataTes);
+    }//GEN-LAST:event_btnPengujianActionPerformed
+
+    private void txtSimpanBobotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSimpanBobotActionPerformed
+        // TODO add your handling code here:
+        JFileChooser jFileChooser1 = new JFileChooser();
+        jFileChooser1.showOpenDialog(null);
+        
+        String filename = String.valueOf(jFileChooser1.getSelectedFile().getAbsolutePath());
+        
+
+        txtLokasiFileTraining.setText(filename);
+    }//GEN-LAST:event_txtSimpanBobotActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        JFileChooser jFileChooser1 = new JFileChooser();
+        jFileChooser1.showOpenDialog(null);
+        
+        String filename = String.valueOf(jFileChooser1.getSelectedFile().getAbsolutePath());        
+        txtLokasiFileTraining.setText(filename);
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        JFileChooser jFileChooser1 = new JFileChooser();
+        jFileChooser1.showOpenDialog(null);
+        
+        String filename = String.valueOf(jFileChooser1.getSelectedFile().getAbsolutePath());        
+        txtLokasiFileTesting.setText(filename);
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -602,14 +938,18 @@ public class HalamanERNN extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDetilERNN;
     private javax.swing.JButton btnHome;
-    private javax.swing.JButton btnMulai;
+    private javax.swing.JButton btnLatih;
+    private javax.swing.JButton btnLoadBobot;
+    private javax.swing.JButton btnPengujian;
+    private javax.swing.JButton btnSimpanBobot;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -624,7 +964,12 @@ public class HalamanERNN extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JLabel labelAkurasiPersenTesting;
+    private javax.swing.JLabel labelAkurasiPersenTraining;
+    private javax.swing.JLabel labelAkurasiTesting;
+    private javax.swing.JLabel labelAkurasiTraining;
     private javax.swing.JTextArea txtAreaBobotHasilPelatihan3;
     private javax.swing.JTextField txtEpoch;
     private javax.swing.JTextField txtFiturInput;
@@ -632,6 +977,7 @@ public class HalamanERNN extends javax.swing.JFrame {
     private javax.swing.JTextField txtLearningRate;
     private javax.swing.JTextField txtLokasiFileTesting;
     private javax.swing.JTextField txtLokasiFileTraining;
+    private javax.swing.JTextField txtSimpanBobot;
     private javax.swing.JTextField txtTimestep;
     // End of variables declaration//GEN-END:variables
 }
