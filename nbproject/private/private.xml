@@ -1,10 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="7">
+        <file>
+            <url>src/Interface/HalamanEkstraksiCiri.java</url>
+            <bookmark id="3">
+                <name/>
+                <line>436</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/Interface/HalamanERNN.java</url>
+            <bookmark id="2">
+                <name/>
+                <line>690</line>
+                <key/>
+            </bookmark>
+            <bookmark id="1">
+                <name/>
+                <line>698</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/MFCCFeatureExtraction/FeatureExtraction.java</url>
+            <bookmark id="4">
+                <name/>
+                <line>362</line>
+                <key/>
+            </bookmark>
+            <bookmark id="5">
+                <name/>
+                <line>376</line>
+                <key/>
+            </bookmark>
+            <bookmark id="6">
+                <name/>
+                <line>380</line>
+                <key/>
+            </bookmark>
+            <bookmark id="7">
+                <name/>
+                <line>384</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/E:/Semester/S8/PROGRAM/ProgramFix/src/Interface/HalamanERNN.java</file>
-            <file>file:/E:/Semester/S8/PROGRAM/ProgramFix/src/NeuralNetwork/ElmanSRN.java</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

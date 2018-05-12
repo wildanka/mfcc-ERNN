@@ -119,14 +119,14 @@ public class DetilERNN extends javax.swing.JFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel1.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
-        jLabel1.setText("Detil Nilai Hasil Pelatihan ERNN");
+        jLabel1.setText("ERNN Weight Detail");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(298, Short.MAX_VALUE)
+                .addContainerGap(378, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addGap(299, 299, 299))
         );
@@ -140,7 +140,7 @@ public class DetilERNN extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Bobot Input menuju Hidden (dan Biasnya)"));
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Input-Hidden (and the Bias)"));
 
         txtAreaBobotHasilPelatihan.setColumns(20);
         txtAreaBobotHasilPelatihan.setRows(5);
@@ -161,7 +161,7 @@ public class DetilERNN extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Bobot Antar Context"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Context-Hidden"));
 
         txtAreaBobotHasilPelatihan2.setColumns(20);
         txtAreaBobotHasilPelatihan2.setRows(5);
@@ -178,7 +178,7 @@ public class DetilERNN extends javax.swing.JFrame {
             .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
         );
 
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Bobot Hidden->Output"));
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Hidden->Output"));
 
         txtAreaBobotHasilPelatihan3.setColumns(20);
         txtAreaBobotHasilPelatihan3.setRows(5);

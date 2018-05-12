@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 
 /**
  *
@@ -23,8 +24,13 @@ import java.util.logging.Logger;
  */
 public class HalamanEkstraksiCiri extends javax.swing.JFrame {
     double EP,SP;
+    private final int FREKUENSI_SAMPLING = 16000;
     int CF, koefisienMFCC;
-
+    String lokasi = "";
+    String lokasiCSVTarget = "";
+    private static double[][] normal;
+    private static double[][] threshold;
+    
     /**
      * Creates new form HalamanEkstraksiCiri
      */
@@ -32,6 +38,14 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         initComponents();
     }
 
+    public static void setNormal(double[][] normal) {
+        HalamanEkstraksiCiri.normal = normal;
+    }
+
+    public static void setThreshold(double[][] threshold) {
+        HalamanEkstraksiCiri.threshold = threshold;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -64,6 +78,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         textAreaMFCCCoefficient = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -78,7 +93,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
             }
         });
 
-        btnDetilMFCC.setText("Detil MFCC");
+        btnDetilMFCC.setText("MFCC Detail");
         btnDetilMFCC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDetilMFCCActionPerformed(evt);
@@ -95,8 +110,8 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                 .addGap(206, 206, 206)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnDetilMFCC, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(33, 33, 33))
+                .addComponent(btnDetilMFCC, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -117,7 +132,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jTextArea1.setRows(5);
         jScrollPane1.setViewportView(jTextArea1);
 
-        txtAreaFolderLocation.setText("E:\\_REKAMAN\\datasetBaru\\Icip");
+        txtAreaFolderLocation.setText("F:\\_PENGUJIAN");
 
         btnExtract.setText("Extract with MFCC");
         btnExtract.addActionListener(new java.awt.event.ActionListener() {
@@ -128,7 +143,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
 
         jLabel3.setText("Considered Frame");
 
-        jLabel4.setText("Start Frame (SP)");
+        jLabel4.setText("Start Frame Index(SFI)");
 
         jSlider1.setMajorTickSpacing(10);
         jSlider1.setMaximum(50);
@@ -136,6 +151,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         jSlider1.setPaintLabels(true);
         jSlider1.setPaintTicks(true);
         jSlider1.setToolTipText("adf");
+        jSlider1.setValue(5);
         jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSlider1StateChanged(evt);
@@ -149,15 +165,27 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
 
         jLabel7.setText("CSV File Target (with filepath) ");
 
-        jLabel8.setText("SP");
+        jLabel8.setText("SF");
 
-        jLabel9.setText("EP");
+        jLabel9.setText("EF");
 
         jLabel10.setText("No. of MFCC Coefficient");
 
         textAreaMFCCCoefficient.setText("12");
 
         jButton1.setText("Browse File");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("Browse...");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -175,38 +203,36 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                         .addGap(14, 14, 14)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel2Layout.createSequentialGroup()
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel2)
-                                            .addComponent(jLabel10)
-                                            .addComponent(jLabel3))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(txtAreaCF, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(textAreaMFCCCoefficient, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                                .addComponent(txtAreaFolderLocation, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButton1))))
-                                    .addGroup(jPanel2Layout.createSequentialGroup()
-                                        .addComponent(jLabel4)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, 429, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18)
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(jLabel8))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel9)
-                                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                .addGap(0, 17, Short.MAX_VALUE))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jLabel7)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(txtAreaCSVTarget, javax.swing.GroupLayout.PREFERRED_SIZE, 339, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(43, 43, 43)))))
+                                .addComponent(txtAreaCSVTarget, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel10)
+                                    .addComponent(jLabel3))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtAreaCF, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(textAreaMFCCCoefficient, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(jPanel2Layout.createSequentialGroup()
+                                        .addComponent(txtAreaFolderLocation, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jButton1))))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, 429, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel8))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel9)
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -240,8 +266,9 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(txtAreaCSVTarget, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
+                    .addComponent(txtAreaCSVTarget, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnExtract)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -286,8 +313,8 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         EP = (1-SP);
         CF = Integer.valueOf(txtAreaCF.getText());
         koefisienMFCC = Integer.valueOf(textAreaMFCCCoefficient.getText());
-        String lokasi = txtAreaFolderLocation.getText();
-        String lokasiCSVTarget = txtAreaCSVTarget.getText();
+        lokasi = txtAreaFolderLocation.getText();
+        lokasiCSVTarget = txtAreaCSVTarget.getText();
         int FREKUENSI_SAMPLING = 16000;
         /*
         ReadWav readwav = new ReadWav();
@@ -320,30 +347,31 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                     fileWriter.append(String.valueOf(fitur[j]));
                     fileWriter.append(COMMA_DELIMITER);
                 }
+                String upTo3Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 3));
                 String upTo4Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 4));
                 String upTo5Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 5));
                 String upTo6Characters = file[i].getName().substring(0, Math.min(file[i].getName().length(), 6));
                 String kelasTarget;
-                if (upTo4Characters.equalsIgnoreCase("atas")) {
-                    kelasTarget = "atas";
-                }else if (upTo5Characters.equalsIgnoreCase("bawah")) {
-                    kelasTarget = "bawah";
-                }else if (upTo5Characters.equalsIgnoreCase("kanan")) {
-                    kelasTarget = "kanan";
-                }else if (upTo4Characters.equalsIgnoreCase("kiri")) {
-                    kelasTarget = "kiri";
-                }else if (upTo4Characters.equalsIgnoreCase("naik")) {
-                    kelasTarget = "naik";
-                }else if (upTo5Characters.equalsIgnoreCase("turun")) {
-                    kelasTarget = "turun";
-                }else if (upTo5Characters.equalsIgnoreCase("salin")) {
-                    kelasTarget = "salin";
-                }else if (upTo6Characters.equalsIgnoreCase("tempel")) {
-                    kelasTarget = "tempel";
-                }else if (upTo6Characters.equalsIgnoreCase("potong")) {
-                    kelasTarget = "potong";
+                if (upTo6Characters.equalsIgnoreCase("adalah")) {
+                    kelasTarget = "adalah";
+                }else if (upTo3Characters.equalsIgnoreCase("ada")) {
+                    kelasTarget = "ada";
+                }else if (upTo4Characters.equalsIgnoreCase("beri")) {
+                    kelasTarget = "beri";
+                }else if (upTo4Characters.equalsIgnoreCase("bisa")) {
+                    kelasTarget = "bisa";
+                }else if (upTo4Characters.equalsIgnoreCase("guna")) {
+                    kelasTarget = "guna";
+                }else if (upTo4Characters.equalsIgnoreCase("jadi")) {
+                    kelasTarget = "jadi";
+                }else if (upTo4Characters.equalsIgnoreCase("laku")) {
+                    kelasTarget = "laku";
+                }else if (upTo5Characters.equalsIgnoreCase("milik")) {
+                    kelasTarget = "milik";
+                }else if (upTo4Characters.equalsIgnoreCase("rupa")) {
+                    kelasTarget = "rupa";
                 }else{
-                    kelasTarget = "hapus";
+                    kelasTarget = "sebut";
                 }
                 
                 jTextArea1.append("Fitur MFCC dari file "+file[i].getName()+" telah didapatkan, termasuk kedalam kategori "+kelasTarget+" ==> "+i+"\n");
@@ -355,6 +383,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
                 }
             } catch (Exception ex) {
                 Logger.getLogger(HalamanEkstraksiCiri.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("hahahahaha");
             }
             // #3 Bingo! you got the MFCC extraction result in CSVFile
         }
@@ -372,10 +401,38 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
     }//GEN-LAST:event_jSlider1StateChanged
 
     private void btnDetilMFCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDetilMFCCActionPerformed
-        // TODO add your handling code here:
-        DetilMFCC d = new DetilMFCC();
+        //DetilMFCC d = new DetilMFCC();
+        CF = Integer.valueOf(txtAreaCF.getText());
+        koefisienMFCC = Integer.valueOf(textAreaMFCCCoefficient.getText());
+        DetilMFCC d = new DetilMFCC(koefisienMFCC,CF,SP,EP);
         d.setVisible(true);
     }//GEN-LAST:event_btnDetilMFCCActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if (txtAreaFolderLocation.getText()==null) {
+            JFileChooser jFileChooser1 = new JFileChooser("E:\\_REKAMAN");
+            jFileChooser1.showOpenDialog(null);
+            String filename = String.valueOf(jFileChooser1.getCurrentDirectory());
+            txtAreaFolderLocation.setText(filename);
+        }else{
+            JFileChooser jFileChooser1 = new JFileChooser(txtAreaFolderLocation.getText());
+            jFileChooser1.showOpenDialog(null);
+            String filename = String.valueOf(jFileChooser1.getCurrentDirectory());
+            txtAreaFolderLocation.setText(filename);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        JFileChooser jFileChooser1 = new JFileChooser();
+        jFileChooser1.showOpenDialog(null);
+        
+        String filename = String.valueOf(jFileChooser1.getSelectedFile().getAbsolutePath());
+        
+
+        txtAreaCSVTarget.setText(filename);
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     private double[][] hitungMFCC(String lokasi, int CF, double SP, double EP, int koefisienMFCC){       
         DecimalFormat formatEmpat = new DecimalFormat("#0.0000"); //format angka
@@ -388,31 +445,36 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         pre.getNilaiSample();        
         
         //output nilai sample
-/*
-        for (int i = 0; i < pre.getNilaiSample().size(); i++) {            
-            System.out.println("("+i+")"+String.valueOf(formatSembilan.format(pre.getNilaiSample().get(i)))+" NILAI SAMPLE AWAL");            
-        }                 
-*/   
+//        for (int i = 0; i < pre.getNilaiSample().size(); i++) {            
+//            txtAreaSinyalAsli.append("("+i+") \t"+String.valueOf(formatSembilan.format(pre.getNilaiSample().get(i)))+" \t NILAI SAMPLE AWAL \n");
+//        }                 
+
         //silencer
         ArrayList<Double> nonSilence = new ArrayList<>();
         nonSilence = pre.silenceRemoval(pre.getNilaiSample(), 16000);        
         // output hasil silence removal
-/*
-        for (int i = 0; i < nonSilence.size(); i++) {                        
-            System.out.println("("+i+")"+String.valueOf(formatSembilan.format(nonSilence.get(i)))+"\t HASIL SILENCE REMOVAL");
-        }         
-*/                
+
+//        for (int i = 0; i < nonSilence.size(); i++) {                        
+//            txtAreaSilenceRemoval.append("("+i+") \t"+String.valueOf(formatSembilan.format(nonSilence.get(i)))+"\t HASIL SILENCE REMOVAL \n");
+//        }
+        
         //lakukan Speech processing
         SpeechProcessing sp = new SpeechProcessing();
-                       
+        
+        //just for displaying dcRemoval Result Signal sake!!!!
+        ArrayList<Double> DCRemovalSignal = sp.dcRemoval(nonSilence);
+        
+//        for (int i = 0; i < DCRemovalSignal.size(); i++) {
+//            txtAreaDCRemoval.append("("+i+") \t"+String.valueOf(formatSembilan.format(DCRemovalSignal.get(i)))+"\t HASIL SILENCE REMOVAL -> DC REMOVAL\n");
+//        }
         
         // DC REMOVAL - PRE EMPHASIS 
-        ArrayList<Double> preEmphasisSignal = sp.preEmphasis(sp.dcRemoval(nonSilence));
-/*        
-        for (int i = 0; i < nonSilence.size(); i++) {
-            System.out.println("("+i+")"+String.valueOf(formatSembilan.format(preEmphasisSignal.get(i)))+"\t HASIL DC REMOVAL -> PRE EMPHASIS");
-        }
-*/
+        ArrayList<Double> preEmphasisSignal = sp.preEmphasis(DCRemovalSignal);
+         
+//        for (int i = 0; i < preEmphasisSignal.size(); i++) {
+//            txtAreaPreEmp.append("("+i+") \t"+String.valueOf(formatSembilan.format(preEmphasisSignal.get(i)))+"\t HASIL DC REMOVAL -> PRE EMPHASIS \n");
+//        }
+
         // FRAME BLOCKING
         //tentukan jumlah frame blocking (frameRate)
         // jika frame sebesar 25 ms = 16 * 25 = 400
@@ -428,108 +490,153 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
         for (int i = 0; i < frameRate; i++) {
             //buat(bagi) frame sebanyak framerate
             start = (samplePoint/2)*i;            
-//            System.out.print(String.valueOf(i)+"\t");
+//            txtAreaFrameBlocking.append(String.valueOf(i)+"\t");
             for (int j = start; j < start+samplePoint; j++) {
                 if (preEmphasisSignal!=null) {
                     mfcc.frame[i][j-start] = preEmphasisSignal.get(j);
                 } else {
                     mfcc.frame[i][j-start] = 0.0;
                 }
-//                System.out.print(String.valueOf(formatEmpat.format(mfcc.frame[i][j-start]))+"\t");               
+//                txtAreaFrameBlocking.append(String.valueOf(formatEmpat.format(mfcc.frame[i][j-start]))+"\t");
             }
-//            System.out.println("");
+//            txtAreaFrameBlocking.append("\n");
         }
         
         //TIME ALIGNMENT
 //        int CF = 5;
 //        double SP = 0.06;
 //        double EP = 0.94;
-        
         SP *= frameRate;
-        EP *= frameRate; 
-        double step = (Math.round(EP) - Math.floor(SP)) / (CF-1);
-        
-        System.out.println(Math.round(EP)-Math.round(SP)+" , "+Math.round(EP)+" "+EP+", "+Math.round(SP)+" "+SP+", STEP = "+step);
+        EP *= frameRate;
+        System.out.println(SP);
+        System.out.println(EP);
+
+        //double step = (Math.round(EP) - Math.round(SP)) / (double) (CF-1);
+        double step = Math.floor((Math.round(EP) - Math.round(SP)) / (double) (CF-1));
+        System.out.println("EP - SP ("+(Math.round(EP)-Math.round(SP))+") , \n"
+                + "Nilai EP Asli = "+EP+" -> Nilai Pembulatan EP = "+Math.round(EP)+" \n"
+                + "Nilai SP Asli = "+SP+", -> Nilai Pembulatan SP = "+Math.round(SP)+" \n"
+                + "STEP = "+Math.round(step));
         //ambil frame tertentu sebanyak CF
         int[] consideredFrame = new int[CF];
         for (int i = 0; i < CF; i++) {
             if (i==0) {
+                //jika i == 0 maka Masukkan nilai SP seperti yang sudah ditentukan
+                //SP = (int) Math.round(SP) - 1;
                 SP = (int) Math.round(SP);
             }else{
-                SP = (int) (Math.round(SP) + Math.floor(step));
+                //selanjutnya geser nilai SP sesuai nilai step yang telah didapatkan
+                SP = (int) (Math.round(SP) + Math.round(step));
             }
+            //masukkan nilai SP tersebut kedalam index consideredFrame yang akan digunakan
             consideredFrame[i] = (int) SP;
             System.out.print(consideredFrame[i]+", ");
         }
         
+        //bentuk sinyal baru yang telah dipilih
+        double[][] choosenFrame = new double[consideredFrame.length][samplePoint];
+       
+        //isi nilai choosenFrame
+        //for displaying sakeee
+        for (int i = 0; i < consideredFrame.length; i++) {
+            int indexCF = consideredFrame[i];
+//            txtAreaTimeAlignment.append(Integer.toString(i)+"\t");
+            for (int j = 0; j < mfcc.frame[0].length; j++) {
+//                txtAreaTimeAlignment.append(String.valueOf(mfcc.frame[indexCF][j])+"\t");
+                choosenFrame[i][j] = mfcc.frame[indexCF][j];
+            }
+//            txtAreaTimeAlignment.append("\n");
+        }
+        
+//        System.out.println("TIME ALIGNMENT -> CHOOSEN FRAME");
+//        for (int i = 0; i < consideredFrame.length; i++) {
+//            for (int j = 0; j < mfcc.frame[0].length; j++) {
+//                System.out.print(choosenFrame[i][j]+"\t");
+//            }
+//            System.out.println("");
+//            
+//        }
+
+//        for (int i = 0; i < choosenFrame.length; i++) {
+//            for (int j = 0; j < choosenFrame[0].length; j++) {
+//                System.out.print(choosenFrame[i][j]+"\t");
+//            }
+//            System.out.println("");
+//        }
+        
         
         // WINDOWING
-        mfcc.windowing(FeatureExtraction.frame, frameRate, samplePoint);                
-/*
-        for (int i = 0; i < CF; i++) {
-            System.out.print(String.valueOf(i)+"\t");
-            for (int j = 0; j < samplePoint; j++) {
-                System.out.print(String.valueOf(formatEnam.format(mfcc.windowingSignal[consideredFrame[i]][j]))+"\t");
-            }
-            System.out.println();
-        }     
-*/    
+        double[][] windowingResult = mfcc.windowing(choosenFrame);
+
+//        for (int i = 0; i < CF; i++) {
+//            txtAreaWindowing.append(String.valueOf(i)+"\t");
+//            for (int j = 0; j < samplePoint; j++) {
+//                txtAreaWindowing.append(String.valueOf(formatEnam.format(windowingResult[i][j])+"\t"));
+//            }
+//            txtAreaWindowing.append("\n");
+//        }
+
         //lakukan Ekstraksi Ciri
         //FFT               
-        mfcc.fastFourierTransform(mfcc.windowingSignal, CF, samplePoint);
-        mfcc.getMagnitudeSemua();
-/*
-        for (int i = 0; i < CF; i++) {
-            System.out.print(String.valueOf(i)+"\t");
-            for (int j = 0; j < samplePoint; j++) {
-                System.out.print(String.valueOf(formatEnam.format(mfcc.magnitudeSemua[i][j]))+"\t");
-               //System.out.println("FRAME KE"+i+"FFT ke"+j+" = "+mfcc.magnitudeSemua[i][j]);
-               //textareaFFT.append(i+"-"+j+"\t");
-            }
-            System.out.println("");
-        }
-*/      
+        double[][] fftResult= mfcc.fastFourierTransform(windowingResult);
+        
+//        for (int i = 0; i < CF; i++) {
+//            txtAreaFFT.append(String.valueOf(i)+"\t");
+//            for (int j = 0; j < samplePoint; j++) {
+//                txtAreaFFT.append(String.valueOf(formatEnam.format(fftResult[i][j]))+"\t");
+//               //System.out.println("FRAME KE"+i+"FFT ke"+j+" = "+mfcc.magnitudeSemua[i][j]);
+//               //textareaFFT.append(i+"-"+j+"\t");
+//            }
+//            txtAreaFFT.append("\n");
+//        }
+      
         //mel-filterbank
         //mfcc.filterbank(mfcc.magnitudeSemua, 22);
         // framerate = jumlah frame yang ada
         // samplePoint = jumlah point(sample dalam 1 frame)
-        mfcc.filterbank(mfcc.getMagnitudeSemua(),1000,CF,samplePoint); 
-/*
-        for (int i = 0; i < CF; i++) {
-            System.out.print(String.valueOf(i)+"\t");
-            for (int j = 0; j < samplePoint; j++) {               
-                System.out.print(String.valueOf(formatEmpat.format(mfcc.melFreqEnergy[i][j]))+"\t");
-            }
-            System.out.println();
-        }
-*/      
+        
+        System.out.println("baris : "+fftResult.length+" kolom : "+fftResult[0].length);
+
+        double[][] melFreqEnergy = mfcc.filterbank(fftResult,16000,30,130,6800);
+
+//        DecimalFormat fEnam = new DecimalFormat("#.######");
+//        for (int i = 0; i < melFreqEnergy.length; i++) {
+//            txtAreaMelFreq.append(String.valueOf(i)+"\t");
+//            for (int j = 0; j < melFreqEnergy[0].length; j++) {               
+//                txtAreaMelFreq.append(String.valueOf(fEnam.format(melFreqEnergy[i][j]))+"\t");
+//            }
+//            txtAreaMelFreq.append("\n");
+//        }     
 
         //DCT
-        mfcc.discreteCosineTransform(mfcc.melFreqEnergy, CF, samplePoint, koefisienMFCC);
+        mfcc.discreteCosineTransform(melFreqEnergy, koefisienMFCC);
         System.out.println(mfcc.dctCepstrum.length+" "+mfcc.dctCepstrum[0].length);
 
-        for (int i = 0; i < mfcc.dctCepstrum.length; i++) {
-            System.out.print(String.valueOf(i)+"\t");
-            for (int j = 0; j < mfcc.dctCepstrum[0].length; j++) {               
-                System.out.print(String.valueOf(formatEmpat.format(mfcc.dctCepstrum[i][j]))+"\t");
-            }
-            System.out.println();
-        }
-
-                
+//        for (int i = 0; i < mfcc.dctCepstrum.length; i++) {
+//            txtAreaDCT.append(String.valueOf(i)+"\t");
+//            for (int j = 0; j < mfcc.dctCepstrum[0].length; j++) {               
+//               txtAreaDCT.append(String.valueOf(formatEmpat.format(mfcc.dctCepstrum[i][j]))+"\t");
+//            }
+//            txtAreaDCT.append("\n");
+//        }
+        
         //normalisasi
-        double[][] hasil = mfcc.normalisasiDanThresholding();
-        for (int i = 0; i < hasil.length; i++) {
-            System.out.print(String.valueOf(i)+"\t");            
-            for (int j = 0; j < hasil[0].length; j++) {
-                System.out.print(String.valueOf(hasil[i][j])+" \t");
-            }
-            System.out.println("");
-        }
+        mfcc.normalisasiDanThresholding();
+//        for (int i = 0; i < hasil.length; i++) {
+//            System.out.print(String.valueOf(i)+"\t");            
+//            for (int j = 0; j < hasil[0].length; j++) {
+//                System.out.print(String.valueOf(hasil[i][j])+" \t");
+//                txtAreaThresholding.append(String.valueOf(hasil[i][j]+"\t"));
+//            }
+//            txtAreaThresholding.append("\n");
+//            System.out.println("");
+//        }
         
         //return mfcc.normalisasiMFCC;
-        return hasil;
+        return threshold;
     }
+    
+    
     /**
      * @param args the command line arguments
      */
@@ -570,6 +677,7 @@ public class HalamanEkstraksiCiri extends javax.swing.JFrame {
     private javax.swing.JButton btnExtract;
     private javax.swing.JButton btnHome;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;

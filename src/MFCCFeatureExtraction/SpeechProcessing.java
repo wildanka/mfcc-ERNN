@@ -33,7 +33,7 @@ public class SpeechProcessing {
             jumlahSampel = jumlahSampel+sample.get(i);
         }
         NILAI_RATA = jumlahSampel/sample.size();
-
+        System.out.println("NILAI RATA2 : "+NILAI_RATA);
         //menghitung DC Removal
         for (int i = 0; i < sample.size(); i++) {
             double hitungDCRemovali = sample.get(i) - NILAI_RATA;
@@ -56,6 +56,7 @@ public class SpeechProcessing {
             double hitungPreEmphasisi = temp1.get(i) - (0.97 * YMin1);
             temp2.add(hitungPreEmphasisi); //pre emphasis filter
             //System.out.println("Y"+i+" = "+temp1.get(i)+" - ("+YMin1+" * 0.97) = "+String.valueOf(preEmphasisi.get(i)));
+            //System.out.println("Y"+i+" = "+temp1.get(i)+" - ("+YMin1+" * 0.97) = "+String.valueOf(hitungPreEmphasisi));
             YMin1 = temp1.get(i);
         }
 
