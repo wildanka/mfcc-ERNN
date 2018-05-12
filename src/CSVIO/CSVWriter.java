@@ -36,6 +36,21 @@ public class CSVWriter {
         fileWriter.close();
     }
     
+    public void tulis3Dto2D(String lokasi, double data[][][]) throws Exception{
+        FileWriter fw = new FileWriter(lokasi,true);
+        for (int x = 0; x < data.length; x++) {
+            for (int y = 0; y < data[0].length; y++) {
+                for (int z = 0; z < data[0][0].length; z++) {
+                    fw.append(String.valueOf(data[x][y][z]));
+                    fw.append(COMMA_DELIMITER);
+                }
+                fw.append(NEW_LINE_SEPARATOR);
+            }
+        }
+        
+        fw.close();
+    }
+    
     public void writeMatrixInARow(String lokasi, double[][] data)throws Exception{
         FileWriter fileWriter = new FileWriter(lokasi);
         for (int i = 0; i < data.length; i++) {                    
